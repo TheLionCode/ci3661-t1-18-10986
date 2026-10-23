@@ -1,0 +1,72 @@
+Problema 7. Carnet 18-10986.
+Los cuatro últimos dígitos son d = [0, 9, 8, 6].
+
+(a) foldr (-) 0 d
+
+foldr (-) 0 [0, 9, 8, 6]
+= 0 - (foldr (-) 0 [9, 8, 6])          {foldr f z (x:xs) = f x (foldr f z xs)}
+= 0 - (9 - (foldr (-) 0 [8, 6]))
+= 0 - (9 - (8 - (foldr (-) 0 [6])))
+= 0 - (9 - (8 - (6 - (foldr (-) 0 []))))
+= 0 - (9 - (8 - (6 - 0)))               {foldr _ z [] = z}
+= 0 - (9 - (8 - 6))
+= 0 - (9 - 2)
+= 0 - 7
+= -7
+
+(b) foldl (-) 0 d
+
+foldl (-) 0 [0, 9, 8, 6]
+= foldl (-) (0 - 0) [9, 8, 6]          {foldl f z (x:xs) = foldl f (f z x) xs}
+= foldl (-) ((0 - 0) - 9) [8, 6]
+= foldl (-) (((0 - 0) - 9) - 8) [6]
+= foldl (-) ((((0 - 0) - 9) - 8) - 6) []
+= (((0 - 0) - 9) - 8) - 6              {foldl _ z [] = z}
+= ((0 - 9) - 8) - 6
+= (-9 - 8) - 6
+= -17 - 6
+= -23
+
+(c) miFoldl (-) 0 [0, 9]
+
+En Tarea1.hs quedó así:
+
+  miFoldl f z xs = (foldr paso (\acc -> acc) xs) z
+    where
+      paso x continuar acc = continuar (f acc x)
+
+d1 = 0 y d2 = 9. f es (-).
+
+miFoldl (-) 0 [0, 9]
+= (foldr paso (\acc -> acc) [0, 9]) 0
+    {ecuación de miFoldl}
+
+foldr paso (\acc -> acc) [0, 9]
+= paso 0 (foldr paso (\acc -> acc) [9])
+    {foldr f z (x:xs) = f x (foldr f z xs)}
+= paso 0 (paso 9 (foldr paso (\acc -> acc) []))
+= paso 0 (paso 9 (\acc -> acc))
+    {foldr _ z [] = z}
+
+Entonces la expresión completa es
+
+  (paso 0 (paso 9 (\acc -> acc))) 0
+
+paso 0 (paso 9 (\acc -> acc)) 0
+= (paso 9 (\acc -> acc)) ((-) 0 0)
+    {ecuación de paso: continuar (f acc x), con x = 0 y acc = 0}
+= (paso 9 (\acc -> acc)) (0 - 0)
+= (paso 9 (\acc -> acc)) 0
+    {0 - 0 = 0}
+
+paso 9 (\acc -> acc) 0
+= (\acc -> acc) ((-) 0 9)
+    {ecuación de paso, con x = 9 y acc = 0}
+= (\acc -> acc) (0 - 9)
+= (\acc -> acc) (-9)
+= -9
+    {β-reducción: (\acc -> acc) (-9) = -9}
+
+(d)
+
+En (a) foldr asocia a la derecha: 0 - (9 - (8 - (6 - 0))) da -7. En (b) foldl asocia a la izquierda y va metiendo la resta en el acumulador: (((0 - 0) - 9) - 8) - 6 da -23. No dan lo mismo porque la resta no es asociativa. Para que foldr op z xs y foldl op z xs den igual en cualquier lista finita, op tiene que ser asociativa y z tiene que ser el neutro de op. En clase vimos que (+) con 0 y (*) con 1 cumplen, y también (++) con [].
